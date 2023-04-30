@@ -121,7 +121,7 @@ class App(ctk.CTk):
 
         self.epselonx_entry = ctk.CTkEntry(master= self.parameters,
                                     width= 120,
-                                    placeholder_text= "Epsilon_x (in F/cm)",
+                                    placeholder_text= "Eps_x (unitless)",
                                     text_font=("Segoe UI", 10)) # type:ignore
         self.epselonx_entry.grid(row=4, column=0, padx=10, pady=10)
 
@@ -199,7 +199,7 @@ class App(ctk.CTk):
         self.upload_button.grid(row=1, column=0, padx=20, pady=0)
 
         self.csvinfo_label = ctk.CTkLabel(master= self.csv_input,
-                                                text= "[Tox (cm), ρ(x) (C*cm^-3)]",
+                                                text= "[Tox (cm), ρ(x) (cm^-3)]",
                                                 text_font=("Segoe UI", 8), # type:ignore
                                                 text_color="grey") 
         self.csvinfo_label.grid(row=2, column=0, padx=10, pady=0)
@@ -293,7 +293,7 @@ class App(ctk.CTk):
         window.minsize(250, 150)
 
         self.info_label = ctk.CTkLabel(master= window,
-                                            text= '''1. The function should be in the form of "x".\n2. The function should be input as a python expression (Numpy as np can be used).    \na. Example: The input for function y = sin(x) would look like {np.sin(x)}.\nb. Example: The input for function y = x^2 would look like {x**2}.\nc. Example: The input for function y = e^-(x^2 + 2x + 1) would look like {np.exp(-(x**2 + 2*x + 1))}.''',
+                                            text= '''1. The function should be in the form of "x".\n2. The function should be input as a python expression (Numpy as np can be used).    \na. Example: The input for function y = sin(x) would look like {np.sin(x)}.\nb. Example: The input for function y = x^2 would look like {x**2}.\nc. Example: The input for function y = e^-(x^2 + 2x + 1) would look like {np.exp(-(x**2 + 2*x + 1))}.\n\n For optimized calibrated solutions, the following design steps are suggestive.\n (1) Take tox greater (within 5 nm) than  Debye length.\n(2) Take silicon thickness greater (within 5 nm) than maximum depletion width (at threshold voltage). ''',
 
                                             text_font=("Segoe UI", 10)) # type:ignore
         self.info_label.grid(row=0, column=0, padx=20, pady=20, sticky="w")
@@ -316,7 +316,7 @@ class App(ctk.CTk):
         if self.option.get() == "Phi_s (in eV)":
             phi_di = float(self.option_entry.get())
         else: #self.option.get() == "Na (in cm^-3)"
-            phi_di = 4.05 + (1.12/2) + 0.026*(np.log(float(self.option_entry.get())/np.power(10, 10)))
+            phi_di = 4.17 + (1.12/2) + 0.025851*np.log(float(self.option_entry.get())/float(9.963*(10**9)))
         return phi_di
 
     def input_function(self, x):
@@ -331,12 +331,13 @@ class App(ctk.CTk):
         return sum * h/2
 
     def voltage_output(self):
-        self.eps_knot = 8.854*(10**-14)
+        self.eps_knot = 8.854e-14
 
         if self.radio_var.get() == 0:
-            volts = float(self.phi_m.get()) - float(self.phi_dipole()) - ((10**-4)*float(self.tox_entry.get()))*(1/(self.eps_knot*float(self.epselonx_entry.get())))*trapezoidal_csv(source)
+            volts = float(self.phi_m.get()) - float(self.phi_dipole()) - (1.60200e-19)*(1/(self.eps_knot*float(self.epselonx_entry.get())))*trapezoidal_csv(source)
+            print(trapezoidal_csv(source))
         else:
-            volts = float(self.phi_m.get()) - float(self.phi_dipole()) - ((10**-4)*float(self.tox_entry.get()))*(1/(self.eps_knot*float(self.epselonx_entry.get())))*self.trapezoidal_fun((10**-4)*float(self.lower_limit.get()), (10**-4)*float(self.upper_limit.get()), int(self.pts_num.get()))
+            volts = float(self.phi_m.get()) - float(self.phi_dipole()) - (1.60200e-19)*(1/(self.eps_knot*float(self.epselonx_entry.get())))*self.trapezoidal_fun((10**-4)*float(self.lower_limit.get()), (10**-4)*float(self.upper_limit.get()), int(self.pts_num.get()))
 
 
         return volts
